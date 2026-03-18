@@ -1,0 +1,48 @@
+name: 🐛 Bug Report
+description: Report a bug in the AI Chatbot
+labels: [bug, triage]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      placeholder: "When I send a message, the streaming breaks..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      value: |
+        1. Open the chatbot
+        2. Type a message
+        3. See error
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Chat / Streaming
+        - Sidebar / Conversations
+        - API Routes
+        - Markdown rendering
+        - Model switching
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Claude model being used
+      placeholder: "e.g. claude-sonnet-4-6"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console / Error logs
+      render: shell

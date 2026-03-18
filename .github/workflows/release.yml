@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: 🎉 Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build with Nextify
+        run: npm run build
+        env:
+          NODE_ENV: production
+      - run: zip -r ai-chatbot-${{ github.ref_name }}.zip dist/
+      - name: Generate Changelog
+        run: |
+          PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV" ]; then
+            LOG=$(git log --pretty=format:"- %s (%h)")
+          else
+            LOG=$(git log --pretty=format:"- %s (%h)" $PREV..HEAD)
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$LOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - uses: softprops/action-gh-release@v1
+        with:
+          name: "AI Chatbot ${{ github.ref_name }}"
+          body: |
+            ## 🤖 AI Chatbot ${{ github.ref_name }}
+
+            ### 📋 Changes
+            ${{ env.CHANGELOG }}
+
+            ### 📦 Stack
+            - React 18 + Nextify (create-nextify + nextify-monorepo)
+            - Anthropic Claude API (Sonnet, Opus, Haiku)
+            - Streaming SSE · Markdown · Syntax Highlighting
+
+            ### 🔑 Setup
+            ```bash
+            npx create-nextify@latest my-chatbot
+            cd my-chatbot
+            npm install
+            echo "ANTHROPIC_API_KEY=sk-..." > .env
+            npm run dev
+            ```
+          files: ai-chatbot-${{ github.ref_name }}.zip
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
