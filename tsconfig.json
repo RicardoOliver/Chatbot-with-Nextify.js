@@ -7,14 +7,17 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+
     "baseUrl": ".",
     "paths": {
-      "@/*":           ["src/*"],
+      "@/*": ["src/*"],
+      "@/types": ["src/types"],
+
       "@components/*": ["src/components/*"],
-      "@hooks/*":      ["src/hooks/*"],
-      "@context/*":    ["src/context/*"],
-      "@lib/*":        ["src/lib/*"],
-      "@types/*":      ["src/types/*"]
+      "@hooks/*": ["src/hooks/*"],
+      "@context/*": ["src/context/*"],
+      "@lib/*": ["src/lib/*"],
+      "@types/*": ["src/types/*"]
     }
   },
   "include": ["src", "pages"],

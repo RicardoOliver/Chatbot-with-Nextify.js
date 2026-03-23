@@ -1,4 +1,4 @@
-import type { ChatRequest } from '../../src/types'
+import type { ChatRequest } from '@/types'
 
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
@@ -17,9 +17,14 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { messages, model, systemPrompt, temperature = 0.7, maxTokens = 1024 } = body
+  const {
+    messages,
+    model,
+    systemPrompt,
+    temperature = 0.7,
+    maxTokens = 1024
+  } = body
 
-  // ─── Call Anthropic streaming API ─────────────────────────────────
   const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -33,10 +38,12 @@ export default async function handler(req: Request) {
       temperature,
       stream: true,
       system: systemPrompt,
-      messages: messages.map(m => ({
-        role: m.role === 'system' ? 'user' : m.role,
-        content: m.content,
-      })),
+      messages: messages.map(
+        (m: ChatRequest['messages'][number]) => ({
+          role: m.role === 'system' ? 'user' : m.role,
+          content: m.content,
+        })
+      ),
     }),
   })
 
@@ -44,11 +51,10 @@ export default async function handler(req: Request) {
     const err = await anthropicRes.json()
     return Response.json(
       { error: err?.error?.message ?? 'Anthropic API error' },
-      { status: anthropicRes.status },
+      { status: anthropicRes.status }
     )
   }
 
-  // ─── Pipe the SSE stream back to client ───────────────────────────
   const stream = new ReadableStream({
     async start(controller) {
       const reader = anthropicRes.body!.getReader()
@@ -73,13 +79,21 @@ export default async function handler(req: Request) {
 
               try {
                 const parsed = JSON.parse(data)
-                // Anthropic uses content_block_delta for streaming
-                if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-                  const out = JSON.stringify({ delta: { text: parsed.delta.text } })
-                  controller.enqueue(new TextEncoder().encode(`data: ${out}\n\n`))
+
+                if (
+                  parsed.type === 'content_block_delta' &&
+                  parsed.delta?.text
+                ) {
+                  const out = JSON.stringify({
+                    delta: { text: parsed.delta.text }
+                  })
+
+                  controller.enqueue(
+                    new TextEncoder().encode(`data: ${out}\n\n`)
+                  )
                 }
               } catch {
-                // skip unparseable chunks
+                // ignora chunks inválidos
               }
             }
           }
