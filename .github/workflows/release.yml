@@ -36,7 +36,7 @@ jobs:
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "$LOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v3
         with:
           name: "AI Chatbot ${{ github.ref_name }}"
           body: |
